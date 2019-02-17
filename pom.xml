@@ -15,6 +15,8 @@
         <junit.version>4.12</junit.version>
         <mockito.version>1.10.19</mockito.version>
         <findbugs.plugin.version>3.0.5</findbugs.plugin.version>
+        <maven.site.version>3.7.1</maven.site.version>
+        <reports.plugin.version>3.0.0</reports.plugin.version>
     </properties>
 
     <dependencies>
@@ -53,6 +55,16 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>${maven.site.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>${reports.plugin.version}</version>
+            </plugin>
         </plugins>
     </build>
 
@@ -61,6 +73,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${findbugs.plugin.version}</version>
                 <configuration>
                     <xmlOutput>true</xmlOutput>
                     <!-- Optional directory to put findbugs xdoc xml report -->

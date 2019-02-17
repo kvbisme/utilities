@@ -181,7 +181,7 @@ public class UserProperties {
         if (properties.containsKey(key)) {
             property = properties.get(key);
         } else {
-            property = new SimpleObjectProperty<>(new Integer(defaultValue), key);
+            property = new SimpleObjectProperty<>(Integer.valueOf(defaultValue), key);
             property.addListener(propertyChangeListener);
             properties.put(key, property);
         }
@@ -207,7 +207,7 @@ public class UserProperties {
             oldValue = (Integer) property.getValue();
             property.setValue(newValue);
         } else {
-            final Integer intValue = new Integer(newValue);
+            final Integer intValue = Integer.valueOf(newValue);
             property = new SimpleObjectProperty<>(null, key, intValue);
             property.addListener(propertyChangeListener);
             properties.put(key, property);
@@ -328,7 +328,7 @@ public class UserProperties {
      * @return the previous value of this property or an empty {@link String} if the
      *         property is new
      */
-    public synchronized String setProperty(final String key, final String value) {
+    public String setProperty(final String key, final String value) {
         final String oldValue;
         final Property<Object> property;
         if (properties.containsKey(key)) {
