@@ -63,7 +63,7 @@ public class UserProperties {
 
     /**
      * Protected constructor for use in unit testing.  Normally you would obtain an instance
-     * using the {@link #}
+     * using the {@link #getInstance()}
      *
      * @param isSyncronized will wrap the underlying {@link TreeMap} so it is synchronized
      *                      if set to true. (future implementaion, right now this value
@@ -181,7 +181,8 @@ public class UserProperties {
         if (properties.containsKey(key)) {
             property = properties.get(key);
         } else {
-            property = new SimpleObjectProperty<>(Integer.valueOf(defaultValue), key);
+            final Integer intValue = Integer.valueOf(defaultValue);
+            property = new SimpleObjectProperty<>(null, key, intValue);
             property.addListener(propertyChangeListener);
             properties.put(key, property);
         }
@@ -245,7 +246,7 @@ public class UserProperties {
         if (properties.containsKey(key)) {
             property = properties.get(key);
         } else {
-            property = new SimpleObjectProperty<>(new Double(defaultValue), key);
+            property = new SimpleObjectProperty<>(null, key, Double.valueOf(defaultValue));
             property.addListener(propertyChangeListener);
             properties.put(key, property);
         }
@@ -310,7 +311,7 @@ public class UserProperties {
         if (properties.containsKey(key)) {
             property = properties.get(key);
         } else {
-            property = new SimpleObjectProperty<>(defaultValue, key);
+            property = new SimpleObjectProperty<>(null, key, defaultValue);
             property.addListener(propertyChangeListener);
             properties.put(key, property);
         }
