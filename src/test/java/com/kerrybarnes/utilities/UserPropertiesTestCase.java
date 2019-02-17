@@ -114,7 +114,7 @@ public class UserPropertiesTestCase {
     @Before
     public void setupTest() {
         System.setProperty(UserProperties.PERSISTENCE_KEY, UserPropertiesByteArrayPersistence.class.getName());
-        props = UserProperties.getInstance();
+        props = new UserProperties(false);
         final UserPropertyPersistence persistence = props.getPersistence();
         assertNotNull(persistence);
         assertTrue(persistence instanceof UserPropertiesByteArrayPersistence);

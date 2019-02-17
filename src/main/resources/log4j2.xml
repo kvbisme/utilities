@@ -1,13 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
-    <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
-        </Console>
-    </Appenders>
+<Configuration status="info" name="kb-utils" packages="">
     <Loggers>
-        <Root level="error">
-            <AppenderRef ref="Console"/>
+        <Root level="DEBUG" additivity="false">
+            <AppenderRef level="DEBUG" ref="CONSOLE"/>
         </Root>
+        <Logger name="com.kerrybarnes.utilities" level="INFO" additivity="false">
+            <Appender-ref ref="fileAppender" level="INFO"/>
+        </Logger>
     </Loggers>
+
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout pattern="%highlight{[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c{1}: %L - %msg%n%throwable}"/>
+        </Console>
+
+        <RollingFile name="fileAppender" fileName="${sys:user.home}/logs/kb-utils.log"
+                     filePattern="${sys:user.home}/logs/$${date:yyyy-MM}/kb-utils-%d{MM-dd-yyyy}-%i.log.gz">
+            <PatternLayout>
+                <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="250 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="4"/>
+        </RollingFile>
+    </Appenders>
 </Configuration>

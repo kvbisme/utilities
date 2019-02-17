@@ -68,7 +68,7 @@ public class UserPropertyLoaderTestCase {
     @Before
     public void intialize() {
         System.setProperty(UserProperties.PERSISTENCE_KEY, UserPropertiesInitialLoader.class.getName());
-        props = UserProperties.getInstance();
+        props = new UserProperties(false);
         loader = (UserPropertiesInitialLoader)props.getPersistence();
     }
     @After
