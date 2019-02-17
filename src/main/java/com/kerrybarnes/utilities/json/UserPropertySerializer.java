@@ -1,4 +1,4 @@
-package com.kerrybarnes.uitilities.json;
+package com.kerrybarnes.utilities.json;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

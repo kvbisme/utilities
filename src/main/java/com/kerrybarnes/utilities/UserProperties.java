@@ -1,4 +1,4 @@
-package com.kerrybarnes.uitilities;
+package com.kerrybarnes.utilities;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -6,17 +6,15 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.kerrybarnes.uitilities.json.UserPropertyDeSerializer;
-import com.kerrybarnes.uitilities.json.UserPropertySerializer;
+import com.kerrybarnes.utilities.json.UserPropertyDeSerializer;
+import com.kerrybarnes.utilities.json.UserPropertySerializer;
+import com.kerrybarnes.utilities.persistence.UserPropertiesFileBasedPersistence;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,9 +22,14 @@ import java.util.Set;
 
 public class UserProperties {
     private static Logger log = LogManager.getLogger(UserProperties.class);
+
+    public final static String PERSISTENCE_KEY = "user.props.persistence";
+    public final static String DEFAULT_PERSISTENCE_CLASS = UserPropertiesFileBasedPersistence.class.getName();
+
     private final static UserProperties instance = new UserProperties(false);
-    private final Path propertiesFilePath;
     private final Map<String, Property<Object>> properties;
+
+    private final UserPropertyPersistence persistence;
 
     private final JsonSerializer<Property> serializer = new UserPropertySerializer();
     private final JsonDeserializer<Property> deSerializer = new UserPropertyDeSerializer();
@@ -34,11 +37,6 @@ public class UserProperties {
     private final TypeReference<HashMap<String, Property>> typeRef = new TypeReference<HashMap<String, Property>>() {};
 
     protected UserProperties(final boolean isSyncronized) {
-        final String userHome = System.getProperty("user.home");
-        final String userName = System.getProperty("user.name");
-        final String propertiesFileName = String.format(".%s.local.properties", userName);
-        propertiesFilePath = Paths.get(userHome, propertiesFileName);
-
         mapper = new ObjectMapper();
         final SimpleModule module = new SimpleModule();
 
@@ -47,6 +45,15 @@ public class UserProperties {
         mapper.registerModule(module);
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
+        final String clazzName = System.getProperty(PERSISTENCE_KEY, DEFAULT_PERSISTENCE_CLASS);
+        try {
+            final Class<?> persistenceClass = Class.forName(clazzName);
+            persistence = (UserPropertyPersistence)persistenceClass.newInstance();
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+            final String msg = String.format("Unable to create persistence layer, reason: %s", e.toString());
+            log.error(msg, e);
+            throw new RuntimeException(msg, e);
+        }
 
         final Map<String,Property<Object>> propertyMap = load();
         if (isSyncronized) {
@@ -57,11 +64,10 @@ public class UserProperties {
     }
 
     protected Map<String, Property<Object>> load() {
-        final File propertiesFile = propertiesFilePath.toFile();
         final Map<String, Property<Object>> properties;
-        if (propertiesFile.exists()) {
+        if (persistence.exists()) {
             try {
-                properties = mapper.readValue(propertiesFilePath.toFile(), typeRef);
+                properties = mapper.readValue(persistence.getInputStream(), typeRef);
             } catch (IOException e) {
                 final String msg = String.format("Error Loading User Properties File, reason: %s", e.toString());
                 log.error(msg, e);
@@ -76,7 +82,7 @@ public class UserProperties {
 
     protected void update() {
         try {
-            mapper.writeValue(propertiesFilePath.toFile(), properties);
+            mapper.writeValue(persistence.getOutputStream(), properties);
         } catch (IOException e) {
             log.error("Error Updating User Properties File", e);
         }
@@ -84,6 +90,15 @@ public class UserProperties {
 
     public int getIntProperty(final String key) {
         return getIntProperty(key, 0);
+    }
+
+    protected UserPropertyPersistence getPersistence() {
+        return persistence;
+    }
+
+    protected void clear() {
+        this.properties.clear();
+        update();
     }
 
     public int getIntProperty(final String key, final int defaultValue) {

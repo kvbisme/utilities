@@ -1,4 +1,4 @@
-package com.kerrybarnes.uitilities.json;
+package com.kerrybarnes.utilities.json;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
