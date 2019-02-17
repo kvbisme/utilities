@@ -11,6 +11,8 @@ import com.kerrybarnes.utilities.json.UserPropertySerializer;
 import com.kerrybarnes.utilities.persistence.UserPropertiesFileBasedPersistence;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,8 +21,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
-public class UserProperties {
+public class UserProperties implements ChangeListener<Object> {
     private static Logger log = LogManager.getLogger(UserProperties.class);
 
     public final static String PERSISTENCE_KEY = "user.props.persistence";
@@ -34,9 +37,10 @@ public class UserProperties {
     private final JsonSerializer<Property> serializer = new UserPropertySerializer();
     private final JsonDeserializer<Property> deSerializer = new UserPropertyDeSerializer();
     private final ObjectMapper mapper;
-    private final TypeReference<HashMap<String, Property>> typeRef = new TypeReference<HashMap<String, Property>>() {};
+    private final TypeReference<TreeMap<String, Property>> typeRef = new TypeReference<TreeMap<String, Property>>() {};
 
-    protected UserProperties(final boolean isSyncronized) {
+    protected UserProperties(final boolean isSyncronized)
+    {
         mapper = new ObjectMapper();
         final SimpleModule module = new SimpleModule();
 
@@ -68,6 +72,9 @@ public class UserProperties {
         if (persistence.exists()) {
             try {
                 properties = mapper.readValue(persistence.getInputStream(), typeRef);
+                properties.values().stream().forEach(p -> {
+                    p.addListener(this);
+                } );
             } catch (IOException e) {
                 final String msg = String.format("Error Loading User Properties File, reason: %s", e.toString());
                 log.error(msg, e);
@@ -86,6 +93,14 @@ public class UserProperties {
         } catch (IOException e) {
             log.error("Error Updating User Properties File", e);
         }
+    }
+
+    public Class<?> getType(final String key) {
+        if (!properties.containsKey(key)) {
+            return null;
+        }
+        final Property<Object> property = properties.get(key);
+        return property.getValue().getClass();
     }
 
     public int getIntProperty(final String key) {
@@ -107,6 +122,7 @@ public class UserProperties {
             property = properties.get(key);
         } else {
             property = new SimpleObjectProperty<>(new Integer(defaultValue), key);
+            property.addListener(this);
             properties.put(key, property);
         }
 
@@ -123,6 +139,7 @@ public class UserProperties {
         } else {
             final Integer intValue = new Integer(newValue);
             property = new SimpleObjectProperty<>(null, key, intValue);
+            property.addListener(this);
             properties.put(key, property);
             oldValue = 0;
         }
@@ -141,6 +158,7 @@ public class UserProperties {
             property = properties.get(key);
         } else {
             property = new SimpleObjectProperty<>(new Double(defaultValue), key);
+            property.addListener(this);
             properties.put(key, property);
         }
 
@@ -157,6 +175,7 @@ public class UserProperties {
         } else {
             final Double dblValue = new Double(newValue);
             property = new SimpleObjectProperty<>(null, key, dblValue);
+            property.addListener(this);
             properties.put(key, property);
             oldValue = 0;
         }
@@ -175,6 +194,7 @@ public class UserProperties {
             property = properties.get(key);
         } else {
             property = new SimpleObjectProperty<>(defaultValue, key);
+            property.addListener(this);
             properties.put(key, property);
         }
 
@@ -190,6 +210,7 @@ public class UserProperties {
             property.setValue(value);
         } else {
             property = new SimpleObjectProperty<>(null, key, value);
+            property.addListener(this);
             properties.put(key, property);
             oldValue = null;
         }
@@ -207,6 +228,11 @@ public class UserProperties {
             return null;
         }
         return (Property<T>) properties.get(key);
+    }
+
+    @Override
+    public void changed(ObservableValue<?> observable, Object oldValue, Object newValue) {
+        update();
     }
 
     public static UserProperties getInstance() {
