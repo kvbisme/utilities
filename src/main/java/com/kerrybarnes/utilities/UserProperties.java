@@ -45,7 +45,7 @@ public class UserProperties {
     public final static String DEFAULT_PERSISTENCE_CLASS = UserPropertiesFileBasedPersistence.class.getName();
 
     private final static UserProperties instance = new UserProperties(false);
-    private final Map<String, Property<Object>> properties;
+    private final Map<String, Property> properties;
 
     private final UserPropertyPersistence persistence;
 
@@ -89,7 +89,7 @@ public class UserProperties {
             throw new RuntimeException(msg, e);
         }
 
-        final Map<String,Property<Object>> propertyMap = load();
+        final Map<String,Property> propertyMap = load();
         if (isSyncronized) {
             properties = Collections.synchronizedMap(propertyMap);
         } else {
@@ -103,8 +103,8 @@ public class UserProperties {
      * @return a new {@link Map} if there is no persisted copy.  If the persisted data
      *         was found a {@link Map} containing the properties
      */
-    protected Map<String, Property<Object>> load() {
-        final Map<String, Property<Object>> properties;
+    protected Map<String, Property> load() {
+        final Map<String, Property> properties;
         if (persistence.exists()) {
             try {
                 properties = mapper.readValue(persistence.getInputStream(), typeRef);
